@@ -20,11 +20,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     // Realmインスタンスを取得する
     
-   
+    
     
     let realm = try! Realm()  // ←追加
     
-
+    
     
     // DB内のタスクが格納されるリスト。
     // 日付近い順\順でソート：降順
@@ -39,26 +39,31 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.dataSource = self
         searchBar.delegate = self
         
+        // テーブルのセルがキーボードに隠れていない場合でもテーブルをスクロールさせるだけでキーボードが隠れる
+        tableView.keyboardDismissMode = .onDrag
+        
     }
     
     
     func searchBar(_ searchBar: UISearchBar,
                    textDidChange searchText: String) {
-    //    self.taskArray = try! Realm().objects(Task.self).filter("")
-    
-        // ここから
+        
+        
+        if !searchText.isEmpty {
+        print("searchText: \(searchText)")
         
         // NSPredicateを使って検索条件を指定します
         let predicate = NSPredicate(format: "category = %@", searchText)
         
         self.taskArray = realm.objects(Task.self).filter(predicate)
-        
-  //      Results<Employee>().filter("company == %@", company)
-    
-        print("searchText: \(searchText)")
-
-    // ここまで
-   
+            
+        } else {
+            print("no searchText")
+            // empty：検索条件を指定せず全てのタスクをtaskArryに入れる
+       self.taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: false)
+            
+            
+        }
         tableView.reloadData()
     }
     
@@ -82,7 +87,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let task = taskArray[indexPath.row]
         cell.textLabel?.text = task.title
         // categoryはCellに値を返さなくて良い？
- //       task.category
+        //       task.category
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -100,25 +105,31 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "cellSegue",sender: nil) // ←追加する    }
         
-        // セルが削除が可能なことを伝えるメソッド
-        func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath)-> UITableViewCellEditingStyle {
-            return UITableViewCellEditingStyle.delete
-        }
-        
-        // Delete ボタンが押された時に呼ばれるメソッド
-        func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-            
-            if editingStyle == UITableViewCellEditingStyle.delete {
-                // データベースから削除する  // ←以降追加する
-                try! realm.write {
-                    self.realm.delete(self.taskArray[indexPath.row])
-                    tableView.deleteRows(at: [indexPath as IndexPath], with: UITableViewRowAnimation.fade)
-                }
-            }
-            
-        }
         
     }
+    
+    
+    
+    // セルが削除が可能なことを伝えるメソッド
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath)-> UITableViewCellEditingStyle {
+        return UITableViewCellEditingStyle.delete
+    }
+    
+    // Delete ボタンが押された時に呼ばれるメソッド
+    //    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    //
+    //       if editingStyle == UITableViewCellEditingStyle.delete {
+    // データベースから削除する  // ←以降追加する
+    //           try! realm.write {
+    //               self.realm.delete(self.taskArray[indexPath.row])
+    //               tableView.deleteRows(at: [indexPath as IndexPath], with: UITableViewRowAnimation.fade)
+    //           }
+    //       }
+    
+    
+    
+    
+    
     
     
     // segue で画面遷移するに呼ばれる

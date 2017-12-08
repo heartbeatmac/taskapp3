@@ -97,8 +97,7 @@ class InputViewController: UIViewController {
         }
     }
     
-    
-    
+
     
     func dismissKeyboard(){
         // キーボードを閉じる
